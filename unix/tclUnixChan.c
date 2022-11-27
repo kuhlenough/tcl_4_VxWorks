@@ -397,11 +397,15 @@ TtyCloseProc(
 
     switch (ttyPtr->closeMode) {
     case CLOSE_DRAIN:
+#ifdef HAVE_TCDRAIN
 	tcdrain(ttyPtr->fileState.fd);
 	break;
+#endif	
     case CLOSE_DISCARD:
+#ifdef TCIOFLUSH
 	tcflush(ttyPtr->fileState.fd, TCIOFLUSH);
 	break;
+#endif	
     default:
 	/* Do nothing */
 	break;
@@ -623,6 +627,9 @@ TtySetOptionProc(
     /*
      * Option -handshake none|xonxoff|rtscts|dtrdsr
      */
+#ifndef IXANY
+#define IXANY  0
+#endif
 
     if ((len > 1) && (strncmp(optionName, "-handshake", len) == 0)) {
 	/*
@@ -669,6 +676,10 @@ TtySetOptionProc(
      */
 
     if ((len > 1) && (strncmp(optionName, "-xchar", len) == 0)) {
+#ifndef VSTART
+	    return TCL_ERROR;
+    }
+#else
 	if (Tcl_SplitList(interp, value, &argc, &argv) == TCL_ERROR) {
 	    return TCL_ERROR;
 	} else if (argc != 2) {
@@ -707,6 +718,7 @@ TtySetOptionProc(
 	tcsetattr(fsPtr->fileState.fd, TCSADRAIN, &iostate);
 	return TCL_OK;
     }
+#endif
 
     /*
      * Option -timeout msec
@@ -1016,7 +1028,7 @@ TtyGetOptionProc(
     /*
      * Get option -xchar
      */
-
+#ifdef VSTART
     if (len == 0) {
 	Tcl_DStringAppendElement(dsPtr, "-xchar");
 	Tcl_DStringStartSublist(dsPtr);
@@ -1039,7 +1051,7 @@ TtyGetOptionProc(
     if (len == 0) {
 	Tcl_DStringEndSublist(dsPtr);
     }
-
+#endif
     /*
      * Get option -queue
      * Option is readonly and returned by [fconfigure chan -queue] but not

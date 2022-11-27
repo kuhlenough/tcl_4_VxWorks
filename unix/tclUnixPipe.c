@@ -405,6 +405,10 @@ TclpCreateProcess(
 				 * filled with the process id of the child
 				 * process. */
 {
+#ifndef NO_FORK
+	Tcl_SetObjResult(interp, Tcl_ObjPrintf("Create Process not supported: %s",
+			 Tcl_PosixError(ENOTSUP)));
+#else	
     TclFile errPipeIn, errPipeOut;
     int count, status, fd;
     char errSpace[200 + TCL_INTEGER_SPACE];
@@ -558,6 +562,7 @@ TclpCreateProcess(
     if (errPipeOut) {
 	TclpCloseFile(errPipeOut);
     }
+#endif    
     return TCL_ERROR;
 }
 

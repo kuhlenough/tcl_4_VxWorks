@@ -504,11 +504,15 @@ DoCopyFile(
 #endif /* !DJGPP */
     case S_IFBLK:
     case S_IFCHR:
-	if (mknod(dst, statBufPtr->st_mode,		/* INTL: Native. */
+#ifdef NO_MKNOD
+    	return TCL_ERROR;
+#else
+    if (mknod(dst, statBufPtr->st_mode,		/* INTL: Native. */
 		statBufPtr->st_rdev) < 0) {
 	    return TCL_ERROR;
 	}
 	return CopyFileAtts(src, dst, statBufPtr);
+#endif	
     case S_IFIFO:
 	if (mkfifo(dst, statBufPtr->st_mode) < 0) {	/* INTL: Native. */
 	    return TCL_ERROR;
