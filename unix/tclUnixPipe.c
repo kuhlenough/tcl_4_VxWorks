@@ -374,7 +374,7 @@ TclpCloseFile(
  *
  *---------------------------------------------------------------------------
  */
-
+#ifndef NO_FORK
 int
 TclpCreateProcess(
     Tcl_Interp *interp,		/* Interpreter in which to leave errors that
@@ -405,10 +405,6 @@ TclpCreateProcess(
 				 * filled with the process id of the child
 				 * process. */
 {
-#ifndef NO_FORK
-	Tcl_SetObjResult(interp, Tcl_ObjPrintf("Create Process not supported: %s",
-			 Tcl_PosixError(ENOTSUP)));
-#else	
     TclFile errPipeIn, errPipeOut;
     int count, status, fd;
     char errSpace[200 + TCL_INTEGER_SPACE];
@@ -562,9 +558,28 @@ TclpCreateProcess(
     if (errPipeOut) {
 	TclpCloseFile(errPipeOut);
     }
-#endif    
     return TCL_ERROR;
 }
+#else
+int
+TclpCreateProcess(
+    Tcl_Interp *interp,		/* Interpreter in which to leave errors that
+				 * occurred when creating the child process.
+				 * Error messages from the child process
+				 * itself are sent to errorFile. */
+	__attribute__ ((unused))size_t argc,
+	__attribute__ ((unused))const char **argv,
+	__attribute__ ((unused))TclFile inputFile,
+	__attribute__ ((unused))TclFile outputFile,
+	__attribute__ ((unused))TclFile errorFile,
+	__attribute__ ((unused))Tcl_Pid *pidPtr)
+{
+
+	Tcl_SetObjResult(interp, Tcl_ObjPrintf("Create Process not supported: %s",
+			 Tcl_PosixError(interp)));
+    return TCL_ERROR;
+}
+#endif
 
 /*
  *----------------------------------------------------------------------

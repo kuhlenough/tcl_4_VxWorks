@@ -397,7 +397,7 @@ TtyCloseProc(
 
     switch (ttyPtr->closeMode) {
     case CLOSE_DRAIN:
-#ifdef HAVE_TCDRAIN
+#ifndef NO_TCDRAIN
 	tcdrain(ttyPtr->fileState.fd);
 	break;
 #endif	
